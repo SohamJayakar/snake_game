@@ -158,6 +158,9 @@ class SnakeGame:
         quit_text = font.render("Press Q to Quit", True, WHITE)
         self.display.blit(quit_text, [self.w - 190, self.h- 50])
 
+        retry_text = font.render("Press R to retry", True, WHITE)
+        self.display.blit(retry_text, [10, self.h - 50])
+
         pygame.display.flip()
 
 
@@ -217,25 +220,35 @@ if __name__ == '__main__':
     game = SnakeGame()
 
     # Game loop
-    while True:
-        game_over, scores = game.play_step()
+    game_over = False
+    scores = [0, 0]
+    retry = False
 
-        if game_over or game.quit_button:
-            break
+    # Game loop
+    while not game.quit_button:
+        while not game_over and not game.quit_button:
+            game_over, scores = game.play_step()
+            game.update_ui(game_over)
 
+        if game_over:
+            game.update_ui(game_over)
+            retry = False
 
-    game.update_ui(game_over)
+        pygame.display.flip()
 
-    for snake_index in range(2):
-        print("Player", snake_index + 1, "Score:", scores[snake_index])
-
-    if scores[0] > scores[1]:
-        print("Player 1 wins!")
-    elif scores[1] > scores[0]:
-        print("Player 2 wins!")
-    else:
-        print("It's a tie!")
-
-    pygame.time.wait(2000)
+        while game_over and not retry and not game.quit_button:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    game.quit_button = True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        game.quit_button = True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        retry = True
+                        game_over = False
+                        scores = [0, 0]
+                        game = SnakeGame()
+                        break
 
     pygame.quit()
